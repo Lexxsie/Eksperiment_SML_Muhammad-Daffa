@@ -1,0 +1,41 @@
+name: Preprocessing Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  preprocessing:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12.7"
+
+      - name: Install dependencies
+        run: |
+          pip install pandas scikit-learn
+
+      - name: Run preprocessing
+        run: |
+          python - <<EOF
+          from automate_Al import preprocess_data
+          train_df, test_df = preprocess_data("hotel_bookings.csv")
+          train_df.to_csv("train.csv", index=False)
+          test_df.to_csv("test.csv", index=False)
+          EOF
+
+      - name: Commit processed dataset
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add train.csv test.csv
+          git commit -m "Update preprocessed dataset"
+          git push
